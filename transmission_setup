@@ -1,0 +1,29 @@
+#!/bin/sh
+sudo apt-get update && sudo apt-get install transmission-daemon
+
+sudo systemctl stop transmission-daemon
+
+wget https://github.com/barryallenx509/pisetup/new/master/transmission_settings.json/raw
+mv transmission_settings.json /etc/transmission-daemon/settings.json
+
+
+
+
+
+
+sudo ufw allow 9091,51413/tcp
+
+sudo systemctl start transmission-daemon
+
+
+
+
+
+
+
+
+
+
+
+
+
