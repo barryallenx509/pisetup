@@ -1,4 +1,6 @@
 #!/bin/bash
 
+
+Refer Readme.md
 #line="* * * * * /path/to/command"
 #(crontab -u pi -l; echo "$line" ) | crontab -u pi -
