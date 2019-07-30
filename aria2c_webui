@@ -1,0 +1,24 @@
+#!/bin/sh
+RPC_TOKEN="changeIt"
+RPC_PORT="6800"
+
+
+# aria2-webui on lighttpd
+sudo apt-get install -y lighttpd unzip
+wget https://github.com/ziahamza/webui-aria2/archive/master.zip
+unzip -qu master.zip
+cd webui-aria2-master/
+change_token(){
+	sed -i '/token:/s/\/\///g' configuration.js
+	sed -i 's/\$YOUR_SECRET_TOKEN\$/'${RPC_TOKEN}'/g' configuration.js
+}
+
+# change_token
+
+sudo cp -Rfu . /var/www/html/
+cd ..
+rm -rf webui-aria2-master master.zip
+
+echo "Done!"
+echo "Your RPC token is: ${RPC_TOKEN}"
+echo "Start aria2 with 'aria2c -D' and enjoy!"
