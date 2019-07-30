@@ -6,24 +6,6 @@ sudo systemctl stop transmission-daemon
 wget https://raw.githubusercontent.com/barryallenx509/pisetup/master/transmission_settings.json
 sudo mv transmission_settings.json /etc/transmission-daemon/settings.json
 
-
-
-
-
-
 sudo ufw allow 9091,51413/tcp
 
 sudo systemctl start transmission-daemon
-
-
-
-
-
-
-
-
-
-
-
-
-
