@@ -1,0 +1,112 @@
+#!/bin/sh
+
+DOWNLOAD_DIR="${HOME}/MiniDLNA"
+CONFIG_DIR="${HOME}/.aria2"
+RPC_TOKEN="changeIt"
+RPC_PORT="6800"
+
+change_apt_source(){
+	if [ -f /etc/apt/sources.list ]; then
+		sudo cp /etc/apt/sources.list /etc/apt/sources.list.bak
+	fi
+	sudo sed -i '/^deb.*/s/^/# /g' /etc/apt/sources.list
+	sudo chmod 666 /etc/apt/sources.list
+	sudo echo "deb http://mirrors.tuna.tsinghua.edu.cn/raspbian/raspbian/ jessie main non-free contrib" >> /etc/apt/sources.list
+	sudo echo "deb-src http://mirrors.tuna.tsinghua.edu.cn/raspbian/raspbian/ jessie main non-free contrib" >> /etc/apt/sources.list
+	sudo chmod 644 /etc/apt/sources.list
+
+}
+# change_apt_source
+
+sudo apt-get update
+sudo apt-get install -y aria2 ca-certificates
+
+if [ ! -d ${DOWNLOAD_DIR} ]; then
+    mkdir -p ${DOWNLOAD_DIR}
+fi
+
+if [ ! -d ${CONFIG_DIR} ]; then
+    mkdir -p ${CONFIG_DIR}
+fi
+
+if [ ! -f ${CONFIG_DIR}/aria2.session ]; then
+	touch ${CONFIG_DIR}/aria2.session
+fi
+if [ ! -f ${CONFIG_DIR}/aria2.log ]; then
+	touch ${CONFIG_DIR}/aria2.log
+fi
+
+if [ -f ${CONFIG_DIR}/aria2.conf ];then
+	mv ${CONFIG_DIR}/aria2.conf ${CONFIG_DIR}/aria2.conf.bak
+fi
+
+# Generate cfg file
+cat > ${CONFIG_DIR}/aria2.conf <<-EOCFG
+# For full reference:
+# https://aria2.github.io/manual/en/html/aria2c.html
+##
+dir=${DOWNLOAD_DIR}
+file-allocation=trunc
+continue=true
+# daemon=true
+##
+log=${CONFIG_DIR}/aria2.log
+console-log-level=warn
+log-level=notice
+##
+max-concurrent-downloads=5
+max-connection-per-server=10
+min-split-size=5M
+split=10
+disable-ipv6=true
+##
+input-file=${CONFIG_DIR}/aria2.session
+save-session=${CONFIG_DIR}/aria2.session
+save-session-interval=30
+##
+enable-rpc=true
+rpc-allow-origin-all=true
+rpc-listen-all=true
+rpc-listen-port=${RPC_PORT}
+rpc-secret=${RPC_TOKEN}
+##
+follow-torrent=mem
+follow-metalink=mem
+enable-dht6=false
+peer-id-prefix=-TR2770-
+user-agent=Transmission/2.77
+seed-time=0
+#seed-ratio=1.0
+bt-seed-unverified=true
+bt-save-metadata=true
+EOCFG
+
+
+# MiniDLNA
+sudo apt-get install -y minidlna
+sudo cp /etc/minidlna.conf /etc/minidlna.conf.origin
+sudo sed -i 's#^media_dir=/.*#media_dir='${DOWNLOAD_DIR}'#g' /etc/minidlna.conf
+sudo sed -i '/#inotify=yes/s/#//g' minidlna.conf #Enable media auto discover
+sudo sed -i '$a fs.inotify.max_user_watches=65536' /etc/sysctl.conf
+
+
+# aria2-webui on lighttpd
+sudo apt-get install -y lighttpd unzip
+wget https://github.com/ziahamza/webui-aria2/archive/master.zip
+unzip -qu master.zip
+cd webui-aria2-master/
+change_token(){
+	sed -i '/token:/s/\/\///g' configuration.js
+	sed -i 's/\$YOUR_SECRET_TOKEN\$/'${RPC_TOKEN}'/g' configuration.js
+}
+
+# change_token
+
+sudo cp -Rfu . /var/www/html/
+cd ..
+rm -rf webui-aria2-master master.zip
+
+echo "Done!"
+echo "Your Aria2 configuration and log file are in : ${CONFIG_DIR}"
+echo "Your RPC token is: ${RPC_TOKEN}"
+echo "Start aria2 with 'aria2c -D' and enjoy!"
