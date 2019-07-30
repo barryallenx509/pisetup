@@ -3,7 +3,7 @@ sudo apt-get update && sudo apt-get install transmission-daemon
 
 sudo systemctl stop transmission-daemon
 
-wget https://github.com/barryallenx509/pisetup/new/master/transmission_settings.json/raw
+wget https://raw.githubusercontent.com/barryallenx509/pisetup/master/transmission_settings.json
 mv transmission_settings.json /etc/transmission-daemon/settings.json
 
 
