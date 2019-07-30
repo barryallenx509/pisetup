@@ -34,3 +34,10 @@ EOL
 
 sudo systemctl enable cloudflared
 sudo systemctl start cloudflared
+
+
+
+sudo curl -sSL https://install.pi-hole.net | bash
+
+
+
